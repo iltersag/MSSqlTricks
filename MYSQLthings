@@ -1,0 +1,48 @@
+mysql de terslik olduğunda aşağıdaki ile genel bir loglara bakmakta fayda var
+
+journalctl -xe
+
+service mysql status
+
+çalışan sorgu listesi için
+
+SHOW FULL PROCESSLIST;
+
+Aktif kullanılan tablolar için
+show open tables where In_Use > 0 ;
+
+
+blocking transactionların listesi için
+
+SELECT
+    pl.id
+    ,pl.user
+    ,pl.state
+    ,it.trx_id
+    ,it.trx_mysql_thread_id
+    ,it.trx_query AS query
+    ,it.trx_id AS blocking_trx_id
+    ,it.trx_mysql_thread_id AS blocking_thread
+    ,it.trx_query AS blocking_query
+FROM information_schema.processlist AS pl
+INNER JOIN information_schema.innodb_trx AS it
+    ON pl.id = it.trx_mysql_thread_id
+INNER JOIN information_schema.innodb_lock_waits AS ilw
+    ON it.trx_id = ilw.requesting_trx_id
+        AND it.trx_id = ilw.blocking_trx_id;
+        
+Açık connectionların görüntülenmesi için
+netstat -n -a |grep 3306
+
+aşağıdaki gibi bir hata alırsan mysql yalnış kapatılmıştı transactionların temizlenmesi lazım 
+
+Jul 07 09:03:12 sendy mysqld[27613]: 2019-07-07  9:03:12 0 [Note] InnoDB: 97 transactions in prepared state after recovery
+Jul 07 09:03:12 sendy mysqld[27613]: 2019-07-07  9:03:12 0 [Note] Found 97 prepared transaction(s) in InnoDB
+Jul 07 09:03:12 sendy mysqld[27613]: 2019-07-07  9:03:12 0 [ERROR] Found 97 prepared transactions! It means that mysqld was not shut down properly last time and critical recovery in
+Jul 07 09:03:12 sendy mysqld[27613]: 2019-07-07  9:03:12 0 [ERROR] Aborting
+Jul 07 09:03:13 sendy systemd[1]: mariadb.service: Main process exited, code=exited, status=1/FAILURE
+Jul 07 09:03:13 sendy systemd[1]: Failed to start MariaDB 10.4.6 database server.
+
+Transactionların temizlenmesi için alttakilerden biri ile tamamlanır sonrasında mysql restart edilir
+
+mysqld --tc-heuristic-recover=ROLLBACK yada mysqld --tc-heuristic-recover=COMMIT 
