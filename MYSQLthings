@@ -46,3 +46,17 @@ Jul 07 09:03:13 sendy systemd[1]: Failed to start MariaDB 10.4.6 database server
 Transactionların temizlenmesi için alttakilerden biri ile tamamlanır sonrasında mysql restart edilir
 
 mysqld --tc-heuristic-recover=ROLLBACK yada mysqld --tc-heuristic-recover=COMMIT 
+
+
+/var/log/mysql altında biriken bin loglarını kapatmak için 
+
+/etc/mysql/my.cnf içindeki log_bin # olmalı
+
+Max connection sayısını arttırmak için 
+
+/etc/mysql/my.cnf içindeki max_connections değerini arttırılabilir
+
+query cache açmak için
+
+/etc/mysql/my.cnf içindeki query_cache_type 1 olmalı
+
