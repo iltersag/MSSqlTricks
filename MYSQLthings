@@ -60,3 +60,7 @@ query cache açmak için
 
 /etc/mysql/my.cnf içindeki query_cache_type 1 olmalı
 
+üser ip sine yetki vermece
+
+GRANT ALL PRIVILEGES ON *.* TO 'user'@'10.10.10.10' IDENTIFIED BY '******' WITH GRANT OPTION;
+
